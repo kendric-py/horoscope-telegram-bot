@@ -23,3 +23,23 @@ async def get_user(user_id: int) -> User:
     except User.DoesNotExist:
         user = None
     return(user)
+
+
+async def get_users() -> list:
+    users = User.select()
+    return(users)
+
+
+async def get_count_users() -> int:
+    count = User.select().count()
+    return(count)
+
+
+async def delete_user(user_id: int) -> None:
+    User.delete().where(User.telegram_id == user_id)
+    return
+
+
+async def get_chanels():
+    chanels = Chanel.select()
+    return(chanels)

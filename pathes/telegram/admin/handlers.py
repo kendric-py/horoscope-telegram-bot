@@ -59,8 +59,6 @@ async def chanels_menu(call: CallbackQuery):
     )
 
 
-
-
 async def start_add_chanel(call: CallbackQuery, state: FSMContext):
     await state.set_state(Chanel.wait_name)
     await call.message.edit_text(

@@ -68,34 +68,35 @@ async def start_add_chanel(call: CallbackQuery, state: FSMContext):
 
 
 async def asking_link_chanel(message: Message, state: FSMContext):
-    await message.delete()
     await state.update_data(chanel_name = message.text)
     await state.set_state(Chanel.wait_link)
     await message.answer(
-        '<b>Отправьте ссылку для пользователей, который будут переходить по ней</b>',
-        reply_markup=nav.render_cancel()
+        '<b>Отправьте ссылку для пользователей, который будут переходить по ней</b>'
     )
 
 
 async def asking_chanel_link(message: Message, state: FSMContext):
-    await message.delete()
     await state.update_data(chanel_link = message.text)
     await state.set_state(Chanel.wait_telegram_id)
     await message.answer(
-        '<b>Отправьте <code>ID</code> канала</b>',
-        reply_markup=nav.render_cancel()
+        '<b>Отправьте <code>ID</code> канала</b>'
     )
 
 
 async def create_chanel_record(message: Message, state: FSMContext):
     state_data = await state.get_data()
-    await message.delete()
     await state.clear()
+    await db.new_chanel(state_data['chanel_name'], state_data['chanel_link'], message.text)
     await message.answer(
-        '<b>Канал успешно добавлен!</b>'
+        '<b>Канал успешно добавлен!</b>',
+        reply_markup=nav.render_back()
     )
     
 
+async def delete_chanel(call: CallbackQuery):
+    chanel_id = call.data.split('&')[3]
+    await db.delete_chanel(chanel_id)
+    await chanels_menu(call)
 
 
 
@@ -138,6 +139,9 @@ admin_router.message.bind_filter(IsAdmin)
 #register message handlers
 admin_router.message.register(open_menu, commands='admin', is_admin=True)
 admin_router.message.register(take_mailing_content, state=Mailing.wait_content) #Рассылка
+admin_router.message.register(asking_link_chanel, state=Chanel.wait_name)
+admin_router.message.register(asking_chanel_link, state=Chanel.wait_link)
+admin_router.message.register(create_chanel_record, state=Chanel.wait_telegram_id)
 
 
 #register callback handlers
@@ -146,7 +150,11 @@ admin_router.callback_query_handler.register(start_mailing, text='admin&mailing'
 admin_router.callback_query_handler.register(run_mailing, text='admin&confirm_mailing', state=Mailing.wait_confirm) # Запуск рассылки
 admin_router.callback_query_handler.register(open_stats_menu, text='admin&stats') #Панель статистики
 admin_router.callback_query_handler.register(open_stats_menu, text='admin&refresh_stats') #Обновление статистики
-admin_router.callback_query_handler.register(chanels_menu, text='admin&chanels')
+admin_router.callback_query_handler.register(chanels_menu, text='admin&chanels') #chanels menu
+admin_router.callback_query_handler.register(start_add_chanel, text='admin&chanel&add') #Начало добавление канала
+admin_router.callback_query_handler.register(delete_chanel, text_startswith='admin&chanel&del&')
+
+
 
 
 

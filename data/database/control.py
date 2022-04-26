@@ -36,10 +36,24 @@ async def get_count_users() -> int:
 
 
 async def delete_user(user_id: int) -> None:
-    User.delete().where(User.telegram_id == user_id)
+    User.delete().where(User.telegram_id == user_id).execute()
     return
 
 
 async def get_chanels():
     chanels = Chanel.select()
     return(chanels)
+
+
+async def new_chanel(name: str, link: str, telegram_id: int) -> Chanel:
+    chanel = Chanel.create(
+        telegram_id=telegram_id,
+        name=name,
+        url=link
+    )
+    return(chanel)
+
+
+async def delete_chanel(chanel_id: int) -> None:
+    Chanel.delete().where(Chanel.id == chanel_id).execute()
+    return

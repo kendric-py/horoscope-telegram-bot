@@ -67,6 +67,21 @@ async def create_ref_code(ref_code: str, message: str) -> RefCode:
     return(code)
 
 
+async def create_referal(ref_code: str, user_id: int):
+    referal = Referal.create(
+        referal_code=ref_code,
+        joined_user=user_id
+    )
+    return(referal)
+
+
+async def get_referal(user_id: int) -> Referal:
+    try:
+        referal = Referal.get(Referal.joined_user == user_id)
+    except Referal.DoesNotExist:
+        referal = None
+    return(referal)
+
 
 async def get_count_use_referal_code(ref_code: str) -> int:
     count = Referal.select().where(Referal.referal_code == ref_code).count()

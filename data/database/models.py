@@ -35,7 +35,7 @@ class Referal(BaseModel):
 
 class RefCode(BaseModel):
     code = peewee.TextField()
-    message = peewee.TextField(default=None, null=True)
+    message = peewee.TextField()
 
     class Meta:
         db_table = 'ref_codes'

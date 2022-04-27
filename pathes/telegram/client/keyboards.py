@@ -2,6 +2,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram.types.inline_keyboard_button import InlineKeyboardButton
 from aiogram.types.keyboard_button import KeyboardButton
 
+from loader import consts
 
 
 def render_subscribe(chanels: list):
@@ -14,14 +15,8 @@ def render_subscribe(chanels: list):
 
 
 def render_horoscope():
-    horoscopes = [
-        '♈️ Овен', '♉️ Телец', '♊️ Близнецы', 
-        '♋️ Рак', '♌️ Лев', '♍️ Дева', '♎️ Весы', 
-        '♏️ Скорпион', '♐️ Стрелец', '♑️ Козерог',
-        '♒️ Водолей', '♓️ Рыбы'
-    ]
     keyboard = ReplyKeyboardBuilder()
-    for horoscope in horoscopes:
+    for horoscope in list(consts.HOROSCOPES.keys()):
         keyboard.add(KeyboardButton(text=horoscope))
     keyboard.adjust(3, repeat=True)
     return(keyboard.as_markup(resize_keyboard=True))

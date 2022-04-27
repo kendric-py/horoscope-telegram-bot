@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher.filters.content_types import ContentTypesFilter
 from aiogram import Router
 
-from loader import bot, db
+from loader import bot, db, consts, hp
 
 from pathes.telegram.filters.client_filters import InChanelsMessage, InChanelsCallback, InDb
 
@@ -86,11 +86,18 @@ async def start_command(message: Message):
     )
 
 
+async def show_horoscope(message: Message):
+    horoscope = await hp(consts.HOROSCOPES[message.text])
+    await message.answer(
+        f'<b>{horoscope}</b>'
+    )
+    
 
 
 
 user_router.message.register(start_command_no_db, commands='start', in_db=False)
 user_router.message.register(start_command, commands='start', in_db=True)
+user_router.message.register(show_horoscope, text = list(consts.HOROSCOPES.keys()))
 
 
 

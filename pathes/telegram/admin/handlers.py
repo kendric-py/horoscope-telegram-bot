@@ -156,7 +156,7 @@ async def asking_message(message: Message, state: FSMContext):
 async def save_referal_code(message: Message, state: FSMContext):
     state_data = await state.get_data()
     await state.clear()
-    referal_message = message.text if message.text != '0' else '<b>🖤Бот работает только после подписки на наш канал, поэтому подписывайтесь и включайте уведомления👇🏻</b>'
+    referal_message = message.html_text if message.text != '0' else '<b>🖤Бот работает только после подписки на наш канал, поэтому подписывайтесь и включайте уведомления👇🏻</b>'
     await db.create_ref_code(state_data['code'], referal_message)
     await message.answer(
         '<b>🟢 Реферальный код успешно создан</b>',

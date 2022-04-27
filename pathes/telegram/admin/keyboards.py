@@ -67,3 +67,14 @@ def render_cancel():
     )
     keyboard.adjust(1)
     return(keyboard.as_markup())
+
+
+def render_referal():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.add(
+        InlineKeyboardButton(text='📚 Посмотреть информацию', callback_data='admin&referal&show'),
+        InlineKeyboardButton(text='➕ Создать реф.код', callback_data='admin&referal&create'),
+        InlineKeyboardButton(text='⬅️ Назад', callback_data='admin&cancel')
+    )
+    keyboard.adjust(1, 1)
+    return(keyboard.as_markup())

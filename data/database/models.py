@@ -31,3 +31,11 @@ class Referal(BaseModel):
 
     class Meta:
         db_table = 'referals'
+
+
+class RefCode(BaseModel):
+    code = peewee.TextField()
+    message = peewee.TextField(default=None, null=True)
+
+    class Meta:
+        db_table = 'ref_codes'

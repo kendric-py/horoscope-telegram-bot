@@ -2,6 +2,7 @@ from aiogram.types.inline_keyboard_button import InlineKeyboardButton
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
+from aiogram.types.input_file import FSInputFile
 
 from aiogram.dispatcher.filters.content_types import ContentTypesFilter
 from aiogram import Router
@@ -9,8 +10,9 @@ from aiogram import Router
 from pathes.telegram.filters.admin_filters import IsAdmin
 
 import copy
+import time
 
-from .states import Mailing, Chanel
+from .states import Mailing, Chanel, CreateReferal, SearchReferal
 from .mailing_system import Core
 from . import keyboards as nav
 from loader import bot, db
@@ -129,6 +131,71 @@ async def run_mailing(call: CallbackQuery, state: FSMContext):
     await ml.run(state_data['copy_message'], users)
 
 
+async def referal_menu(call: CallbackQuery):
+    await call.message.edit_text(
+        '<b>📑 Вы перешли в реферальное меню</b>',
+        reply_markup=nav.render_referal()
+    )
+
+
+async def start_create_referal_code(call: CallbackQuery, state: FSMContext):
+    await state.set_state(CreateReferal.wait_code)
+    await call.message.edit_text(
+        '<b>Отправьте код</b>'
+    )
+
+
+async def asking_message(message: Message, state: FSMContext):
+    await state.set_state(CreateReferal.wait_message)
+    await state.update_data(code=message.text)
+    await message.answer(
+        '<b>Отправьте сообщение, которое будет выводить после /start</b>'
+    )
+
+
+async def save_referal_code(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    await state.clear()
+    referal_message = message.text if message.text != '0' else None
+    await db.create_ref_code(state_data['code'], referal_message)
+    await message.answer(
+        '<b>🟢 Реферальный код успешно создан</b>',
+        reply_markup=nav.render_back()
+    )
+
+
+async def start_serach_referal_code(call: CallbackQuery, state: FSMContext):
+    await state.set_state(SearchReferal.wait_code)
+    await call.message.edit_text(
+        '<b>Отправьте код, для получения информации по нему</b>'
+    )
+
+
+async def show_search_result(message: Message, state: FSMContext):
+    await state.clear()
+    referal_code = await db.search_referal_code(message.text)
+    if not(referal_code):
+        await message.answer('Реферальный код не найден!', reply_markup=nav.render_back())
+        return
+    count_use = await db.get_count_use_referal_code(message.text)
+    await message.answer(
+        f'<b>Реферальный код найден!</b>\
+        \n\n<b>Активаций:</b> <code>{count_use}</code>\
+        \n<b>Сообщение:</b> <code>{referal_code.message}</code>',
+        reply_markup=nav.render_back()
+    )
+
+
+async def upload_users(call: CallbackQuery):
+    users_str = ''
+    users = await db.get_users()
+    for user in users:
+        users_str += f'{user.telegram_id}\n'
+    with open('data/cache/users', 'w') as file: file.write(users_str)
+    file = FSInputFile('data/cache/users', 'users.txt')
+    await call.message.answer_document(file)
+    
+
 
 
 
@@ -142,6 +209,10 @@ admin_router.message.register(take_mailing_content, state=Mailing.wait_content) 
 admin_router.message.register(asking_link_chanel, state=Chanel.wait_name)
 admin_router.message.register(asking_chanel_link, state=Chanel.wait_link)
 admin_router.message.register(create_chanel_record, state=Chanel.wait_telegram_id)
+admin_router.message.register(asking_message, state=CreateReferal.wait_code)
+admin_router.message.register(save_referal_code, state=CreateReferal.wait_message)
+admin_router.message.register(show_search_result, state=SearchReferal.wait_code)
+
 
 
 #register callback handlers
@@ -153,6 +224,11 @@ admin_router.callback_query_handler.register(open_stats_menu, text='admin&refres
 admin_router.callback_query_handler.register(chanels_menu, text='admin&chanels') #chanels menu
 admin_router.callback_query_handler.register(start_add_chanel, text='admin&chanel&add') #Начало добавление канала
 admin_router.callback_query_handler.register(delete_chanel, text_startswith='admin&chanel&del&')
+admin_router.callback_query_handler.register(referal_menu, text='admin&referal')
+admin_router.callback_query_handler.register(start_create_referal_code, text='admin&referal&create')
+admin_router.callback_query_handler.register(start_serach_referal_code, text='admin&referal&show')
+admin_router.callback_query_handler.register(upload_users, text='admin&upload')
+
 
 
 
